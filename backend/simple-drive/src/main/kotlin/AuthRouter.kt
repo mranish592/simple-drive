@@ -14,85 +14,106 @@ object AuthRouter {
 
     suspend fun login(call: RoutingCall) {
         val logPrefix = "/auth/login ::"
-        val loginUserRequest = call.receive<LoginUserRequest>()
-        val existingUser = DB.getUserByEmail(loginUserRequest.email)
-        if(existingUser == null) {
-            log.error("$logPrefix No user found with email ${loginUserRequest.email} in DB")
-            return call.respond(HttpStatusCode.NotFound, "User not found")
+        try {
+            log.info("$logPrefix received request")
+            val loginUserRequest = call.receive<LoginUserRequest>()
+            if(log.isDebugEnabled) log.debug("$logPrefix Logging in user with email ${loginUserRequest.email}")
+            val existingUser = DB.getUserByEmail(loginUserRequest.email)
+            if(existingUser == null) {
+                log.error("$logPrefix No user found with email ${loginUserRequest.email} in DB")
+                return call.respond(HttpStatusCode.NotFound, "User not found")
+            }
+            if(!HashUtil.verifyPassword(loginUserRequest.password, existingUser.passwordHash)) {
+                log.error("$logPrefix Invalid password for user with email ${loginUserRequest.email}")
+                return call.respond(HttpStatusCode.Unauthorized, "Invalid email or password")
+            }
+            val accessToken = JWTAuthProvider.generateAccessToken(loginUserRequest.email)
+            val refreshToken = JWTAuthProvider.generateRefreshToken(loginUserRequest.email)
+            val response = mapOf("accessToken" to accessToken, "name" to existingUser.name)
+            log.info("$logPrefix User with email ${loginUserRequest.email} logged in successfully. Sending access token and refresh token.")
+            call.response.cookies.append(getRefreshCookie(refreshToken))
+            call.respond(HttpStatusCode.OK, response)
+        } catch (e: Exception) {
+            log.error("$logPrefix Error logging in user", e)
+            return call.respond(HttpStatusCode.InternalServerError, "Error logging in user")
         }
-        if(!HashUtil.verifyPassword(loginUserRequest.password, existingUser.passwordHash)) {
-            log.error("$logPrefix Invalid password for user with email ${loginUserRequest.email}")
-            return call.respond(HttpStatusCode.Unauthorized, "Invalid email or password")
-        }
-        val accessToken = JWTAuthProvider.generateAccessToken(loginUserRequest.email)
-        val refreshToken = JWTAuthProvider.generateRefreshToken(loginUserRequest.email)
-        val response = mapOf("accessToken" to accessToken)
-        val cookie = Cookie(
-            name = "refreshToken",
-            value = refreshToken,
-            httpOnly = true,
-            secure = false,
-            path = "/auth/refresh",
-            expires = Instant.now().plus(Duration.ofDays(30)).toGMTDate() // Adjust expiration
-        )
-        log.info("$logPrefix User with email ${loginUserRequest.email} logged in successfully. Sending access token and refresh token.")
-        call.response.cookies.append(cookie)
-        call.respond(HttpStatusCode.OK, response)
+
     }
 
     suspend fun signup(call: RoutingCall) {
         val logPrefix = "/auth/signup ::"
-        val signupUserRequest = call.receive<SignupUserRequest>()
-        val existingUser = DB.getUserByEmail(signupUserRequest.email)
-        if(existingUser != null) {
-            log.error("$logPrefix User with email ${signupUserRequest.email} already exists in DB")
-            return call.respond(HttpStatusCode.Conflict,
-                "User with email ${signupUserRequest.email} already exists")
+        try {
+            val signupUserRequest = call.receive<SignupUserRequest>()
+            val existingUser = DB.getUserByEmail(signupUserRequest.email)
+            if(existingUser != null) {
+                log.error("$logPrefix User with email ${signupUserRequest.email} already exists in DB")
+                return call.respond(HttpStatusCode.Conflict,
+                    "User with email ${signupUserRequest.email} already exists")
+            }
+            val passwordHash = HashUtil.hashPassword(signupUserRequest.password)
+            val user = User(signupUserRequest.name, signupUserRequest.email, passwordHash)
+            try {
+                DB.createUser(user)
+            } catch (e: AlreadyExistsInDBException) {
+                log.error("$logPrefix User with email ${signupUserRequest.email} already exists in DB")
+                return call.respond(HttpStatusCode.Conflict, "User with email ${signupUserRequest.email} already exists")
+            }
+            val accessToken = JWTAuthProvider.generateAccessToken(signupUserRequest.email)
+            val refreshToken = JWTAuthProvider.generateRefreshToken(signupUserRequest.email)
+            val response = mapOf("accessToken" to accessToken, "name" to signupUserRequest.name)
+            log.info("$logPrefix User with email ${signupUserRequest.email} signed up successfully. Sending access token and refresh token.")
+            call.response.cookies.append(getRefreshCookie(refreshToken))
+            call.respond(HttpStatusCode.OK, response)
+        } catch (e: Exception) {
+            log.error("$logPrefix Error signing up user", e)
+            return call.respond(HttpStatusCode.InternalServerError, "Error signing up user")
         }
-        val passwordHash = HashUtil.hashPassword(signupUserRequest.password)
-        val user = User(signupUserRequest.name, signupUserRequest.email, passwordHash)
-        DB.createUser(user)
-        val accessToken = JWTAuthProvider.generateAccessToken(signupUserRequest.email)
-        val refreshToken = JWTAuthProvider.generateRefreshToken(signupUserRequest.email)
-        val response = mapOf("accessToken" to accessToken)
-        val cookie = Cookie(
-            name = "refreshToken",
-            value = refreshToken,
-            httpOnly = true,
-            secure = false,
-            path = "/auth/refresh",
-            expires = Instant.now().plus(Duration.ofDays(30)).toGMTDate()
-        )
-        log.info("$logPrefix User with email ${signupUserRequest.email} signed up successfully. Sending access token and refresh token.")
-        call.response.cookies.append(cookie)
-        call.respond(HttpStatusCode.OK, response)
+
     }
 
     suspend fun refresh(call: RoutingCall) {
         val logPrefix = "/auth/refresh ::"
-        val refreshTokenFromCookie = call.request.cookies.get("refreshToken")
-        if(refreshTokenFromCookie == null) {
-            log.error("$logPrefix No refresh token found in cookie")
-            return call.respond(HttpStatusCode.BadRequest, "No refresh token found in cookie")
+        try {
+            val refreshTokenFromCookie = call.request.cookies.get("refreshToken")
+            if (refreshTokenFromCookie == null) {
+                log.error("$logPrefix No refresh token found in cookie")
+                return call.respond(HttpStatusCode.BadRequest, "No refresh token found in cookie")
+            }
+            val username = JWTAuthProvider.getUsernameFromToken(refreshTokenFromCookie)
+            if (username == null) {
+                log.error("$logPrefix Invalid refresh token")
+                return call.respond(HttpStatusCode.BadRequest, "Invalid refresh token")
+            }
+            val accessToken = JWTAuthProvider.generateAccessToken(username)
+            val refreshToken = JWTAuthProvider.generateRefreshToken(username)
+            val response = mapOf("accessToken" to accessToken)
+            log.info("$logPrefix User with email ${username} refreshed successfully. Sending access token and refresh token.")
+            call.response.cookies.append(getRefreshCookie(refreshToken))
+            call.respond(HttpStatusCode.OK, response)
+        } catch (e: Exception) {
+            log.error("$logPrefix Error refreshing token", e)
+            return call.respond(HttpStatusCode.InternalServerError, "Error refreshing token")
         }
-        val username = JWTAuthProvider.getUsernameFromToken(refreshTokenFromCookie)
-        if(username == null) {
-            log.error("$logPrefix Invalid refresh token")
-            return call.respond(HttpStatusCode.BadRequest, "Invalid refresh token")
+    }
+
+    suspend fun logout(call: RoutingCall) {
+        val logPrefix = "/auth/logout ::"
+        try {
+            call.response.cookies.append(getLogoutCookie())
+            call.respond(HttpStatusCode.OK, "Logged out successfully")
+        } catch (e: Exception) {
+            log.error("$logPrefix Error logging out", e)
+            return call.respond(HttpStatusCode.InternalServerError, "Error logging out")
         }
-        val accessToken = JWTAuthProvider.generateAccessToken(username)
-        val refreshToken = JWTAuthProvider.generateRefreshToken(username)
-        val response = mapOf("accessToken" to accessToken)
-        val cookie = Cookie(
-            name = "refreshToken",
-            value = refreshToken,
-            httpOnly = true,
-            secure = false,
-            path = "/auth/refresh",
-            expires = Instant.now().plus(Duration.ofDays(30)).toGMTDate()
-        )
-        log.info("$logPrefix User with email ${username} refreshed successfully. Sending access token and refresh token.")
-        call.response.cookies.append(cookie)
-        call.respond(HttpStatusCode.OK, response)
+    }
+
+    fun getRefreshCookie(refreshToken: String): Cookie {
+        return Cookie(name = "refreshToken", value = refreshToken,
+            httpOnly = true, secure = false, path = "/auth/refresh",
+            expires = Instant.now().plus(Duration.ofDays(30)).toGMTDate())
+    }
+    fun getLogoutCookie(): Cookie {
+        return Cookie(name = "refreshToken", value = "", httpOnly = true, secure = false,
+            path = "/auth/refresh", expires = Instant.now().toGMTDate())
     }
 }
