@@ -2,6 +2,7 @@ package com.simpledrive
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import kotlinx.coroutines.runBlocking
 import org.apache.logging.log4j.LogManager
@@ -16,6 +17,7 @@ import io.ktor.server.routing.*
 import org.slf4j.event.Level
 import java.time.Duration
 import java.time.Instant
+import io.ktor.server.plugins.cors.routing.*
 
 fun main(): Unit = runBlocking {
     val log = LogManager.getLogger()
@@ -73,23 +75,38 @@ object JWTAuthProvider {
     }
 }
 
+//data class UserPrincipal(val userId: String)
 object Server {
     fun configure(application: Application) {
         application.install(CallLogging) { level = Level.INFO }
-        application.install(ContentNegotiation) { jackson() }
+        application.install(CORS) {
+            allowMethod(HttpMethod.Options)
+            allowMethod(HttpMethod.Put)
+            allowMethod(HttpMethod.Delete)
+            allowMethod(HttpMethod.Patch)
+            allowMethod(io.ktor.http.HttpMethod.Post)
+            allowMethod(io.ktor.http.HttpMethod.Get)
+            allowHeader(io.ktor.http.HttpHeaders.Authorization)
+            allowHeader(io.ktor.http.HttpHeaders.ContentType)
+            allowHeader(io.ktor.http.HttpHeaders.Cookie)
+            allowHeader(HttpHeaders.AccessControlAllowOrigin)
+            allowHeader(HttpHeaders.AccessControlAllowHeaders)
+            allowHeader("refreshToken")
+            allowHeader("accessToken")
+            allowXHttpMethodOverride()
+            allowOrigins { true }
+            allowCredentials = true
+            anyHost()
+            allowHost("localhost:5173", schemes = listOf("http"))
+        }
         application.install(Authentication) { authenticationConfig(this) }
+        application.install(ContentNegotiation) { jackson() }
     }
 
     private fun authenticationConfig(authenticationConfig: AuthenticationConfig,) {
         authenticationConfig.jwt("bearer") {
             verifier(JWTAuthProvider.verifier)
-            validate { credential ->
-                if (credential.payload.getClaim("username").asString() != "") {
-                    JWTPrincipal(credential.payload)
-                } else {
-                    null
-                }
-            }
+            validate { credential -> credential.payload.getClaim("username").asString() }
         }
     }
 }
@@ -103,6 +120,16 @@ object Router {
                 post("/signup") { AuthRouter.signup(call) }
                 post("/login") { AuthRouter.login(call)}
                 post("/refresh") { AuthRouter.refresh(call) }
+                post("/logout") { AuthRouter.logout(call) }
+            }
+        }
+        application.routing {
+            authenticate("bearer") {
+                route("/api") {
+                    post("/upload") { ApiRouter.upload(call) }
+                    get("/download") { ApiRouter.download(call) }
+                    get("/list") { ApiRouter.list(call) }
+                }
             }
         }
     }
