@@ -1,4 +1,4 @@
-package com.simpledrive
+package com.simpledrive.utils
 import org.mindrot.jbcrypt.BCrypt
 
 object HashUtil {
