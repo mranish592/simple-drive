@@ -9,7 +9,7 @@ Prerequisites:
   - docker or podman for running backend and mongo containers
   - npm and vite for frontend
 
-1. git clone and check out the main branch
+1. git clone and check out the main branch ```git clone https://github.com/mranish592/simple-drive.git```
 2. ```cd simple-drive```
 3. ```mkdir -p ./local_data/```
 4. ```docker-compose up``` or ```podman-compose up``` to start the mongodb and backend containers
