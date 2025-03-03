@@ -1,5 +1,6 @@
-package com.simpledrive
+package com.simpledrive.data
 
+import com.simpledrive.utils.Config
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import org.apache.logging.log4j.LogManager
@@ -10,13 +11,13 @@ import java.util.*
 data class SavedFile(val storePath: String, val size: Long)
 
 interface FileStore {
-    abstract suspend fun upload(fileName: String, fileProvider: ByteReadChannel): SavedFile?
-    abstract suspend fun download(storePath: String): File?
+    suspend fun upload(fileName: String, fileProvider: ByteReadChannel): SavedFile?
+    suspend fun download(storePath: String): File?
     companion object {
         fun getFilStore(): FileStore {
-            when(Config.FILE_STORE) {
-                "LOCAL" -> return LocalFileStore
-                "S3" -> return S3FileStore
+            return when(Config.FILE_STORE) {
+                "LOCAL" -> LocalFileStore
+                "S3" -> S3FileStore
                 else -> throw Exception("Invalid file store")
             }
         }
@@ -25,16 +26,16 @@ interface FileStore {
 }
 
 object LocalFileStore : FileStore {
-    val log = LogManager.getLogger(this.javaClass)
+    private val log = LogManager.getLogger(this.javaClass)
     override suspend fun upload(fileName: String, fileProvider: ByteReadChannel): SavedFile? {
 
         val logPrefix = "LocalFileStore.upload ::"
         log.info("$logPrefix Uploading $fileName to local file store")
-        val dirPath = "/local_data/filstore"
+        val dirPath = "/local_data/filestore"
         val uid = UUID.randomUUID().toString()
         val filePath = "$dirPath/$uid-$fileName"
         try {
-            val file = java.io.File(filePath)
+            val file = File(filePath)
             fileProvider.copyAndClose(file.writeChannel())
             log.info("$logPrefix Uploaded $fileName to $filePath")
             return SavedFile(file.absolutePath, file.length())
@@ -58,8 +59,8 @@ object LocalFileStore : FileStore {
 }
 
 object S3FileStore : FileStore {
-    val log = LogManager.getLogger(this.javaClass)
-    override suspend fun upload(fileName: String, fileProvider: ByteReadChannel): SavedFile? {
+    private val log = LogManager.getLogger(this.javaClass)
+    override suspend fun upload(fileName: String, fileProvider: ByteReadChannel): SavedFile {
         val logPrefix = "S3FileStore.upload ::"
         log.info("$logPrefix Uploading $fileName to S3")
         // TODO Upload to S3

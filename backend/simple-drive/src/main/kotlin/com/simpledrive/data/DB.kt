@@ -1,28 +1,31 @@
-package com.simpledrive
+package com.simpledrive.data
 
-import com.mongodb.MongoClientException
 import com.mongodb.MongoException
+import com.simpledrive.utils.Config
 import io.ktor.server.plugins.*
 import org.apache.logging.log4j.LogManager
 import org.litote.kmongo.reactivestreams.*
 import org.litote.kmongo.coroutine.*
 
-data class User(val name: String, val username: String, val passwordHash: String, val fileIds: List<String> = emptyList(), )
+data class User(
+    val name: String,
+    val username: String,
+    val passwordHash: String,
+    val fileIds: List<String> = emptyList(),
+)
 data class File(val fileId: String, val fileName: String, val extension: String, val size: Long, val storePath: String, val username: String, val createdOn: Long = System.currentTimeMillis())
 class AlreadyExistsInDBException(message: String) : Exception(message)
 object DB {
-    var client: CoroutineClient
-    private val log = LogManager.getLogger(this.javaClass)
-    init {
-        val username = "admin"
-        val password = "admin"
-        val host = "localhost"
-        val port = 27017
-        val connectionString = "mongodb://$username:$password@$host:$port"
-        println("Connecting to MongoDB using $connectionString")
-        client = KMongo.createClient(connectionString).coroutine
-        println("Connected to MongoDB using $connectionString")
 
+    private val log = LogManager.getLogger(this.javaClass)
+    private val client : CoroutineClient = createMongoClient()
+    private fun createMongoClient(): CoroutineClient {
+
+        val connectionString = "mongodb://${Config.MONGODB_USERNAME}:${Config.MONGODB_PASSWORD}@${Config.MONGODB_HOST}:$${Config.MONGODB_PORT}"
+        println("Connecting to MongoDB using $connectionString")
+        val client = KMongo.createClient(connectionString).coroutine
+        println("Connected to MongoDB using $connectionString")
+        return client
     }
     private val db = client.getDatabase("simple-drive")
     private val users = db.getCollection<User>("users")
@@ -92,9 +95,7 @@ object DB {
                 log.error("$logPrefix User not found with username $username")
                 throw NotFoundException("User not found")
             }
-//            val previousFileids = user.fileIds.joinToString(",") { "'$it'" }
             val fileIds = user.fileIds.plus(fileId).joinToString (",") { "'$it'" }
-//            log.info("$logPrefix previousFileids: $previousFileids")
             users.updateOne("{'username': '$username'}", "{\$set: {fileIds: [$fileIds]}}")
         } catch (e: Throwable) {
             log.error("$logPrefix Error adding files for user $username", e)

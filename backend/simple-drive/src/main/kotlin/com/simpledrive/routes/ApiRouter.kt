@@ -1,5 +1,7 @@
-package com.simpledrive
+package com.simpledrive.routes
 
+import com.simpledrive.data.FileStore
+import com.simpledrive.data.DB
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.auth.*
@@ -10,9 +12,9 @@ import org.apache.logging.log4j.LogManager
 import java.util.*
 
 object ApiRouter {
-    val fileStore = FileStore.getFilStore()
+    private val fileStore = FileStore.getFilStore()
 
-    val log = LogManager.getLogger(this.javaClass)
+    private val log = LogManager.getLogger(this.javaClass)
     suspend fun upload(call: RoutingCall) {
         val logPrefix = "/api/upload ::"
         log.info("$logPrefix received request")
