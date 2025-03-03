@@ -42,8 +42,8 @@ Auth:
 
 Functional:
   - POST /api/upload
-  - GET /download
-  - GET /list
+  - GET /api/download
+  - GET /api/list
 
 ### UI Features
 - Allow users to sign up and log in using email and password.
