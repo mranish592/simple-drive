@@ -3,14 +3,10 @@ package com.simpledrive
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import org.apache.logging.log4j.LogManager
-import org.litote.kmongo.json
 import java.util.*
 
 object ApiRouter {
@@ -86,6 +82,10 @@ object ApiRouter {
                 log.error("$logPrefix Error downloading file with fileId $fileId")
                 return call.respond(HttpStatusCode.InternalServerError, "Error downloading file")
             }
+            call.response.header(
+                HttpHeaders.ContentDisposition,
+                ContentDisposition.Attachment.withParameter(ContentDisposition.Parameters.FileName, fileMetaData.fileName).toString()
+            )
             call.respondFile(fileContent)
         } catch (e: Exception) {
             log.error("$logPrefix Error downloading file with fileId $fileId", e)

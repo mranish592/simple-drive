@@ -30,7 +30,7 @@ object LocalFileStore : FileStore {
 
         val logPrefix = "LocalFileStore.upload ::"
         log.info("$logPrefix Uploading $fileName to local file store")
-        val dirPath = "/Users/anish/projects/simple-drive/local_data/local_file_store"
+        val dirPath = "/local_data/filstore"
         val uid = UUID.randomUUID().toString()
         val filePath = "$dirPath/$uid-$fileName"
         try {

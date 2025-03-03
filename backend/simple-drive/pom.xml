@@ -19,6 +19,7 @@
         <logback.version>1.5.17</logback.version>
         <kmongo.version>5.2.0</kmongo.version>
         <bcrypt.version>0.4</bcrypt.version>
+        <mockk.version>1.13.17</mockk.version>
     </properties>
 
     <repositories>
@@ -175,6 +176,11 @@
             <artifactId>ktor-server-test-host-jvm</artifactId>
             <version>${ktor.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.mockk</groupId>
+            <artifactId>mockk</artifactId>
+            <version>${mockk.version}</version>
         </dependency>
         <dependency>
             <groupId>io.ktor</groupId>

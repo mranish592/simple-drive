@@ -23,12 +23,15 @@ fun main(): Unit = runBlocking {
     val log = LogManager.getLogger()
     log.info("Starting simple drive backend.")
     val server = embeddedServer(Netty, port = 3000, host = "0.0.0.0") {
-        Server.configure(this)
-        Router.routing(this)
+        module()
     }
     server.start(wait = true)
 }
 
+fun Application.module() {
+    Server.configure(this)
+    Router.routing(this)
+}
 object JWTAuthProvider {
     val secret = "your-secret"
     val jwtIssuer = "simpldrive-backend"
