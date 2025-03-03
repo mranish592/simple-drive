@@ -1,9 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { LogoutButton } from "./LogoutButton";
 import { useEffect } from "react";
 import axios from "axios";
 import { UploadForm } from "./UploadForm";
-import { ListButton } from "./ListButton";
 import { DataTableDemo } from "./DataTableDemo";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
@@ -33,7 +31,6 @@ export function HomePage() {
     if (name == null) {
         navigate("/login");
     }
-    const firstName = name?.split(" ")[0];
     setInterval(() => {
         axiosClient.post("/auth/refresh").then((response) => {
             console.log(response);

@@ -1,10 +1,8 @@
 import { apiClient } from "@/api/api";
 import { AxiosProgressEvent } from "axios";
 import { Button } from "./ui/button";
-import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { login } from "@/store/authSlice";
 import { updateFiles } from "@/store/fileSlice";
 export interface File {
     fileId: string;
@@ -16,7 +14,6 @@ export function ListButton() {
     const accessToken = useSelector((state: RootState) => state.auth.accessToken);
     const dispatch = useDispatch();
 
-    const [state, setState] = useState({ downloading: false });
     const handleList = () => {
         apiClient
             .get("/list", {
@@ -54,10 +51,10 @@ export function ListButton() {
                         link.setAttribute("download", "abc"); //or any other extension
                         document.body.appendChild(link);
                         link.click();
-                        setState({ downloading: false });
+                        // setState({ downloading: false });
                     })
                     .catch((error) => {
-                        setState({ downloading: false });
+                        // setState({ downloading: false });
                         console.warn("Errore: " + error.message);
                         return [];
                     });

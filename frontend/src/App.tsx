@@ -1,7 +1,5 @@
-import { Button } from "@/components/ui/button";
-import { SignupForm } from "./components/SignupForm";
 import { SignupPage } from "./components/SignupPage";
-import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { LoginPage } from "./components/LoginPage";
 import { HomePage } from "./components/HomePage";
 import { Navbar } from "./components/Navbar";

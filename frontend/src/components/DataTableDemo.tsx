@@ -13,14 +13,13 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { File } from "@/store/fileSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { login } from "@/store/authSlice";
 import { apiClient } from "@/api/api";
 import { updateFiles } from "@/store/fileSlice";
 import { AxiosProgressEvent } from "axios";
@@ -97,7 +96,6 @@ export function DataTableDemo() {
             header: () => <div className="text-right"></div>,
             cell: ({ row }) => {
                 const fileId = row.getValue<number>("fileId");
-                <Button></Button>;
                 const downloadHandler = () => {
                     apiClient
                         .get("/download", {
