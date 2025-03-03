@@ -35,15 +35,15 @@ Prerequisites:
 
 ### APIs
 Auth: 
-  POST /auth/signup
-  POST /auth/login
-  POST /auth/refresh
-  POST /auth/logout
+  - POST /auth/signup
+  - POST /auth/login
+  - POST /auth/refresh
+  - POST /auth/logout
 
 Functional:
-  POST /api/upload
-  GET /download
-  GET /list
+  - POST /api/upload
+  - GET /download
+  - GET /list
 
 ### UI Features
 - Allow users to sign up and log in using email and password.
