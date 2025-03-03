@@ -7,9 +7,12 @@ services:
         depends_on:
             - "mongodb"
         volumes:
-            - ./local_data/:/local_data/filstore
+            - ./local_data/filstore:/local_data/filstore
         environment:
-            - VARIABLE_NAME=value
+            - MONGODB_HOST=mongodb
+        networks:
+            - simple-driver-network
+
     mongodb:
         image: mongo:latest
         ports:
@@ -20,3 +23,9 @@ services:
         volumes:
             - ./local_data:/data/db
         command: --auth
+        networks:
+            - simple-driver-network
+
+networks:
+    simple-driver-network:
+        driver: bridge
