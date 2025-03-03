@@ -60,7 +60,6 @@ export function DataTableDemo() {
                     </div>
                 );
             },
-            // header: () => <div className="text-right">Size</div>,
             cell: ({ row }) => {
                 const size = row.getValue<number>("size");
                 var displaySize: number = size;
@@ -119,10 +118,8 @@ export function DataTableDemo() {
                             link.setAttribute("download", fileName);
                             document.body.appendChild(link);
                             link.click();
-                            // setState({ downloading: false });
                         })
                         .catch((error) => {
-                            // setState({ downloading: false });
                             console.warn("Errore: " + error.message);
                             return [];
                         });
