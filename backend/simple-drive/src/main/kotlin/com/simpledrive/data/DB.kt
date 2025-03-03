@@ -21,7 +21,7 @@ object DB {
     private val client : CoroutineClient = createMongoClient()
     private fun createMongoClient(): CoroutineClient {
 
-        val connectionString = "mongodb://${Config.MONGODB_USERNAME}:${Config.MONGODB_PASSWORD}@${Config.MONGODB_HOST}:$${Config.MONGODB_PORT}"
+        val connectionString = "mongodb://${Config.MONGODB_USERNAME}:${Config.MONGODB_PASSWORD}@${Config.MONGODB_HOST}:${Config.MONGODB_PORT}"
         println("Connecting to MongoDB using $connectionString")
         val client = KMongo.createClient(connectionString).coroutine
         println("Connected to MongoDB using $connectionString")
