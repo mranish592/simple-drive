@@ -53,6 +53,7 @@ object AuthRouter {
     suspend fun signup(call: RoutingCall) {
         val logPrefix = "/auth/signup ::"
         try {
+            log.info("$logPrefix received request")
             val signupUserRequest = call.receive<SignupUserRequest>()
             val existingUser = DB.getUserByEmail(signupUserRequest.email)
             if(existingUser != null) {

@@ -1,5 +1,6 @@
 package com.simpledrive
 
+import com.simpledrive.data.DB
 import kotlinx.coroutines.runBlocking
 import org.apache.logging.log4j.LogManager
 import io.ktor.server.engine.*
@@ -12,6 +13,8 @@ fun main(): Unit = runBlocking {
         module()
     }
     server.start(wait = true)
+    DB
+    log.info("simple drive backend server started on port 3000")
 }
 
 
