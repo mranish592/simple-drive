@@ -1,0 +1,22 @@
+services:
+    backend:
+        build:
+            context: ./backend/simple-drive
+        ports:
+            - "3000:3000"
+        depends_on:
+            - "mongodb"
+        volumes:
+            - ./local_data/:/local_data/filstore
+        environment:
+            - VARIABLE_NAME=value
+    mongodb:
+        image: mongo:latest
+        ports:
+            - "27017:27017"
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: admin
+            MONGO_INITDB_ROOT_PASSWORD: admin
+        volumes:
+            - ./local_data:/data/db
+        command: --auth
