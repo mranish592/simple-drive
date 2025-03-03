@@ -11,8 +11,8 @@ Prerequisites:
 
 1. git clone and check out the main branch ```git clone https://github.com/mranish592/simple-drive.git```
 2. ```cd simple-drive```
-3. ```mkdir -p ./local_data/```
-4. ```docker-compose up``` or ```podman-compose up``` to start the mongodb and backend containers
+3. ```mkdir -p ./local_data/filstore```
+4. ```docker-compose up``` or ```podman-compose up``` to start the mongodb and backend containers (please be a little patient. downloading all images and artifiacts might take upto 5 minutes.)
 5. In a new terminal window, ```cd frontend```
 6. ```npm install```
 7. ```npm run dev```  to start the front end server (default port 5173)
