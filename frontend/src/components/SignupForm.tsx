@@ -11,6 +11,9 @@ import axios from "axios";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { authClient } from "@/api/api";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/store/store";
+import { login } from "@/store/authSlice";
 
 const formSchema = z.object({
     name: z.string().nonempty({
@@ -25,6 +28,15 @@ const formSchema = z.object({
 });
 
 export function SignupForm() {
+    const auth = useSelector((state: RootState) => state.auth);
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        if (auth.accessToken && auth.name) {
+            navigate("/");
+        }
+    }, [auth.accessToken, auth.name, auth.isAuthenticated]);
+
     const navigate = useNavigate();
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -38,8 +50,12 @@ export function SignupForm() {
     function onSubmit(values: z.infer<typeof formSchema>) {
         authClient.post("/signup", values).then((response) => {
             console.log(response);
-            localStorage.setItem("accessToken", response.data.accessToken);
-            localStorage.setItem("name", response.data.name);
+            dispatch(
+                login({
+                    accessToken: response.data.accessToken,
+                    name: response.data.name,
+                })
+            );
             navigate("/");
         });
         console.log(values);
