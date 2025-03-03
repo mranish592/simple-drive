@@ -12,5 +12,6 @@ WORKDIR /
 RUN unzip simple-drive-1.0-SNAPSHOT.zip
 WORKDIR /simple-drive-1.0-SNAPSHOT
 RUN chmod +x entrypoint.sh startSimpleDrive.sh
+RUN mkdir -p /local_data/filstore
 CMD ["./entrypoint.sh"]
 # CMD ["tail", "-f", "/dev/null"]
