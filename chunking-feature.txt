@@ -1,0 +1,64 @@
+/api/upload/metatdata
+{
+    [
+        'name'
+        'type'
+        'numChunks'
+    ]
+}
+
+/api/upload/data
+multipart/form-data
+
+//File chunk
+{
+    'chunkId': ''
+    'fileName' : ''
+    'seq': ''
+    'data': ''
+}
+200 OK
+4XX 
+// Backend
+
+fileMetaData -> Hashmap
+key: filename -> string
+value: metdata
+
+internalstore -> Hashmap
+Key: fileName -> string
+Value: chunks -> set[file chunk]
+
+channel.push(data)
+Processor.read().forEach {
+    addDatachunks(data)
+    // if all chunks received, call fileStore.upload()
+    if(allChunksReceived(data)) {
+        chunks = internalStore[data.filname]
+        fileStore.upload(chunks)
+    }
+    // else add the chunk in in-memory DB
+}
+
+addDataChunks(data) {
+    chunks = internalstore[data.filename]
+    chunks.add(data)
+}
+
+allChunksReceived(data){
+    check in in-memory DB against data.fileName
+    chunks = internalstore[filename]
+    return chunks.size == fileMetaData[data.filename].numChunks
+}
+
+
+//max chunk size = 1024 * 1024 bytes (1MB)
+
+//take data bytearray, and split it into chumks of length 1MB
+chunks = data.split()
+{
+    'chunkId': ''
+    'fileName' : ''
+    'seq': ''
+    'data': ''
+}
