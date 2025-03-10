@@ -13,7 +13,7 @@ fun main(): Unit = runBlocking {
         module()
     }
     server.start(wait = true)
-    DB
+    DB.connect()
     log.info("simple drive backend server started on port 3000")
 }
 

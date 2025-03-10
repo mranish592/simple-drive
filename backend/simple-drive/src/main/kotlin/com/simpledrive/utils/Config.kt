@@ -2,6 +2,7 @@ package com.simpledrive.utils
 
 object Config {
     val FILE_STORE = load("FILE_STORE", "LOCAL")
+    val FILE_STORE_DIR_PATH = load("FILE_STORE_DIR_PATH", "../local_data")
     val MONGODB_HOST = load("MONGODB_HOST", "localhost")
     val MONGODB_PORT = load("MONGODB_PORT", 27017)
     val MONGODB_USERNAME = load("FILE_STORE", "admin")

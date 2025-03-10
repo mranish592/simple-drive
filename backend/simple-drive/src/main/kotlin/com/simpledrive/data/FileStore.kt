@@ -31,9 +31,9 @@ object LocalFileStore : FileStore {
 
         val logPrefix = "LocalFileStore.upload ::"
         log.info("$logPrefix Uploading $fileName to local file store")
-        val dirPath = "/local_data/filestore"
+        val dirPath = Config.FILE_STORE_DIR_PATH
         val uid = UUID.randomUUID().toString()
-        val filePath = "$dirPath/$uid-$fileName"
+        val filePath = "$dirPath/$uid-${fileName.replace(" ", "_")}"
         try {
             val file = File(filePath)
             fileProvider.copyAndClose(file.writeChannel())
